@@ -2,7 +2,7 @@
 Test your knowledge.
 
 ### Click below to download app
-[![Download](assets/downloadbtn.png)](https://github.com/Goody-h/ges300/releases/download/v1.0.0-beta/ges300_Quiz_App.apk)
+[![Download](assets/downloadbtn.png)](https://firebasestorage.googleapis.com/v0/b/orsteg-inc.appspot.com/o/ges300_Quiz_App.apk?alt=media&token=5228b0f9-9fcc-4479-bb19-da501ecc345a)
 
 ## Introduction
 Test your GES 300 knowledge with this simple quiz app.
@@ -17,7 +17,7 @@ If you feel like you can make this project better or have more questions you wou
 This project is licenced under the Apache License, Version 2.0. Read the [license](LICENSE) statement for more information.
 
 ### Click to download app
-[![Download](assets/downloadbtn.png)](https://github.com/Goody-h/ges300/releases/download/v1.0.0-beta/ges300_Quiz_App.apk)
+[![Download](assets/downloadbtn.png)](https://firebasestorage.googleapis.com/v0/b/orsteg-inc.appspot.com/o/ges300_Quiz_App.apk?alt=media&token=5228b0f9-9fcc-4479-bb19-da501ecc345a)
 
 ## Contact
 - Support: orsteg.apps@gmail.com
