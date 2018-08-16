@@ -112,7 +112,7 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
                 int line = 0;
                 StringBuilder ex = new StringBuilder();
                 Question q = new Question();
-                String ans = "";
+
                 int p = 0;
 
                 try {
@@ -122,29 +122,26 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
 
                             int l = line % 5;
                             if (l == 0){
-                                q.question = ex.toString().replaceFirst("(\\d+)(\\.)(\\s+)", "");
+                                q.question = ex.toString().replaceFirst("(\\s*)(\\d+)(\\.)(\\s*)", "");
                             } else if (l >= 1 && l <= 4) {
 
                                 String s = ex.toString();
-                                boolean a = s.indexOf('*') == 0;
+                                boolean a = s.matches("(\\s*)(\\*)([abcd]+)(.*)");
 
-                                String opt = s.replaceFirst("([*abcd]+)(\\.)(\\s+)", "");
-                                int ind = rnd.nextInt(q.options.size()+1);
+                                String opt = s.replaceFirst("(\\s*)([*abcd]+)(\\.)(\\s*)", "");
 
-                                q.options.add(ind, opt);
+                                q.options.add(opt);
 
-                                if (a) ans = opt;
+                                if (a) q.answer = q.options.size() - 1;
 
 
                                 if (l == 4) {
-                                    q.answer = q.options.indexOf(ans);
 
                                     int ind2 = rnd.nextInt(questions.size()+1);
 
                                     questions.add(ind2, q);
 
                                     q = new Question();
-                                    ans = "";
                                 }
                             }
 
