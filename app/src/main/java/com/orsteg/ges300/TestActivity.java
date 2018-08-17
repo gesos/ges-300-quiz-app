@@ -30,15 +30,18 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
     private SharedPreferences prefs;
     public int questionCount, correctCount;
 
-    public Button end, next;
+    public Button end, next, previous;
     public ListView options;
     public TextView index, question;
 
-    public boolean resultState;
 
     public Options optionAdapter;
     public AdapterView.OnItemClickListener listener;
     public ArrayList<Question> questions;
+    public ArrayList<Integer> rndInts;
+    public ArrayList<Integer> states;
+
+    public int position;
 
     public Random rnd;
 
@@ -51,6 +54,7 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
 
         end = (Button) findViewById(R.id.finish);
         next = (Button) findViewById(R.id.next);
+        previous = (Button) findViewById(R.id.previous);
         options = (ListView) findViewById(R.id.options);
         index = (TextView) findViewById(R.id.index);
         question = (TextView) findViewById(R.id.question);
@@ -58,12 +62,22 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
         prefs = getSharedPreferences("scores", Activity.MODE_PRIVATE);
         questionCount = 0;
         correctCount = 0;
-        resultState = false;
 
+        position = -1;
+        states = new ArrayList<>();
+
+        if (savedInstanceState != null) {
+
+            rndInts = savedInstanceState.getIntegerArrayList("rndInts");
+            position = savedInstanceState.getInt("position");
+            questionCount = savedInstanceState.getInt("qCount");
+            correctCount = savedInstanceState.getInt("cCount");
+            states = savedInstanceState.getIntegerArrayList("states");
+        }
         rnd = new Random();
 
         questions = new ArrayList<>();
-        optionAdapter = new Options(this, new ArrayList<String>(), -1);
+        optionAdapter = new Options(this, -1);
 
         end.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,7 +89,8 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(optionAdapter.showAnswer){
+                if (questions.size() > 0)
+                if(questions.get(position).showAnswer){
                     nextQuestion();
                 } else {
                     checkAnswer();
@@ -84,18 +99,41 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
             }
         });
 
+        previous.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (position > 0) previousQuestion();
+            }
+        });
+
 
         listener = new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                optionAdapter.selection = i;
+
+                states.remove(position);
+
+                states.add(position, i);
+
+                questions.get(position).selection = i;
+
                 optionAdapter.notifyDataSetChanged();
             }
         };
 
-        options.setAdapter(optionAdapter);
 
         getQuestions();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putIntegerArrayList("rndInts", rndInts);
+        outState.putInt("position", position - 1);
+        outState.putInt("qCount", questionCount);
+        outState.putInt("cCount", correctCount);
+        outState.putIntegerArrayList("states", states);
     }
 
     public void getQuestions(){
@@ -107,6 +145,9 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
             @Override
             public void run() {
                 InputStream questionSheet = getResources().openRawResource(R.raw.sheet);
+
+                boolean state = rndInts != null;
+                if (!state) rndInts = new ArrayList<>();
 
                 int r = 0;
                 int line = 0;
@@ -137,7 +178,14 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
 
                                 if (l == 4) {
 
-                                    int ind2 = rnd.nextInt(questions.size()+1);
+
+                                    int ind2;
+
+                                    if (!state) {
+                                        ind2 = rnd.nextInt(questions.size()+1);
+                                        rndInts.add(ind2);
+                                    }
+                                    else ind2 = rndInts.get(questions.size());
 
                                     questions.add(ind2, q);
 
@@ -159,10 +207,26 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
                     Log.d("Error", e.getMessage());
                 }
 
+                if (state) {
+                    for (int i = 0; i < questionCount; i++) {
+                        questions.get(i).showAnswer = true;
+                        questions.get(i).selection = states.get(i);
+                    }
+
+                    if (states.size() > questionCount) {
+                        questions.get(states.size()-1).selection = states.get(states.size()-1);
+                    }
+                }
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         dialog.dismiss();
+
+                        if (questions.size() > 0) {
+                            optionAdapter.index = 0;
+                            options.setAdapter(optionAdapter);
+                        }
                         nextQuestion();
                     }
                 });
@@ -180,28 +244,47 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
 
         questionCount++;
 
-        if (optionAdapter.answer == optionAdapter.selection) {
+        if (questions.get(position).answer == questions.get(position).selection) {
             correctCount++;
         }
     }
 
+    public void previousQuestion() {
+        position--;
+
+
+        options.setOnItemClickListener(null);
+        next.setText("Next");
+
+
+        index.setText("(" + (position + 1) + ")  of  (378)");
+
+        question.setText(questions.get(position).question);
+        optionAdapter.setOptions(position);
+
+    }
+
     public void nextQuestion(){
 
-        if (questions.size() > 0) {
+        if (position < questions.size()-1) {
 
-            next.setText("Continue");
-            options.setOnItemClickListener(listener);
+            position ++;
 
-            index.setText("(" + (questionCount + 1) + ")  of  (378)");
+            if (!questions.get(position).showAnswer){
+                options.setOnItemClickListener(listener);
+                next.setText("Continue");
+            } else {
+                options.setOnItemClickListener(null);
+                next.setText("Next");
+            }
 
-            int i = rnd.nextInt(questions.size());
+            index.setText("(" + (position + 1) + ")  of  (378)");
 
-            Question q = questions.get(i);
+            question.setText(questions.get(position).question);
+            optionAdapter.setOptions(position);
 
-            question.setText(q.question);
-            optionAdapter.setOptions(q.options, q.answer);
+            if (states.size() == position) states.add(0);
 
-            questions.remove(i);
         } else if (questionCount > 0){
             endTest();
         }
@@ -228,41 +311,35 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
 
         public String[] indexes = {"(A) ", "(B) ", "(C) ", "(D) "};
         public Context context;
-        public ArrayList<String> options;
-        public int answer, selection;
-        public boolean showAnswer;
+        public int index;
 
-        public Options(Context context, ArrayList<String> options, int answer) {
-            this.options = options;
-            this.answer = answer;
+        public Options(Context context, int index) {
+            this.index = index;
             this.context = context;
-            showAnswer = false;
-
-            selection = 0;
         }
 
-        public void setOptions(ArrayList<String> options, int answer) {
-            this.options = options;
-            this.answer = answer;
-            showAnswer = false;
-
-            selection = 0;
+        public void setOptions(int index) {
+            this.index = index;
             notifyDataSetChanged();
         }
 
         public void showAnswer(){
-            showAnswer = true;
+            questions.get(index).showAnswer = true;
             notifyDataSetChanged();
+        }
+
+        public Question getQ() {
+            return questions.get(index);
         }
 
         @Override
         public int getCount() {
-            return options.size();
+            return getQ().options.size();
         }
 
         @Override
         public String getItem(int i) {
-            return options.get(i);
+            return getQ().options.get(i);
         }
 
         @Override
@@ -279,15 +356,15 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
 
             value.setText(indexes[i] + getItem(i));
 
-            if (!showAnswer){
-            if (i == selection) {
+            if (!getQ().showAnswer){
+            if (i == getQ().selection) {
                 img.setImageResource(android.R.drawable.checkbox_on_background);
             }} else {
-                if (selection == i) {
+                if (getQ().selection == i) {
                     img.setImageResource(R.drawable.ic_close_black_24dp);
                     view.setBackgroundColor(context.getResources().getColor(R.color.myRed));
                 }
-                if (answer == i) {
+                if (getQ().answer == i) {
                     img.setImageResource(R.drawable.ic_check_black_24dp);
                     view.setBackgroundColor(context.getResources().getColor(R.color.myGreen));
                 }
@@ -301,19 +378,15 @@ public class TestActivity extends AppCompatActivity implements Result.EndTestLis
     public class Question {
         public String question;
         public ArrayList<String> options;
-        public int answer;
+        public int answer, selection;
+        public boolean showAnswer;
 
         public Question(){
             question = "";
             options = new ArrayList<>();
             answer = -1;
-        }
-        public Question(String question, ArrayList<String> options, int answer) {
-
-            this.question = question;
-            this.options = options;
-            this.answer = answer;
-
+            selection = 0;
+            showAnswer = false;
         }
     }
 }
