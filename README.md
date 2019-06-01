@@ -2,7 +2,7 @@
 Test your knowledge.
 
 ### Click below to download app
-[![Download](assets/downloadbtn.png)](https://drive.google.com/open?id=1qntkqoLo2FsUIR2jijNq4GwmBbXu4F4B)
+[![Download](assets/downloadbtn.png)](https://play.google.com/store/apps/details?id=com.orsteg.ges300)
 
 ## Introduction
 Test your GES 300 knowledge with this simple quiz app.
@@ -17,7 +17,7 @@ If you feel like you can make this project better or have more questions you wou
 This project is licenced under the Apache License, Version 2.0. Read the [license](LICENSE) statement for more information.
 
 ### Click to download app
-[![Download](assets/downloadbtn.png)](https://drive.google.com/open?id=1qntkqoLo2FsUIR2jijNq4GwmBbXu4F4B)
+[![Download](assets/downloadbtn.png)](https://play.google.com/store/apps/details?id=com.orsteg.ges300)
 
 ## Contact
 - Support: orsteg.apps@gmail.com
